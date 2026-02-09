@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Login</title>
+  <link rel="stylesheet" href="css/auth.css">
+</head>
+<body>
+
+<div class="card">
+  <h2>Dashboard</h2>
+
+  <!-- Email input + suggestions -->
+  <div class="input-wrapper">
+    <input
+      id="email"
+      placeholder="Email"
+      autocomplete="off"
+    />
+    <div id="suggestions" class="suggestions"></div>
+  </div>
+
+  <!-- Password -->
+  <div class="password-box">
+    <input type="password" id="password" placeholder="Password">
+    <span class="eye" id="toggleLogin">👁️</span>
+  </div>
+
+  <p id="error" class="error"></p>
+
+  <button onclick="login()">Login</button>
+
+  <a href="forgot.html">Forgot password?</a><br>
+  <a href="register.html">Register</a>
+</div>
+
+<script src="js/auth.js"></script>
+</body>
+</html>

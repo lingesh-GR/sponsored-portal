@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Register</title>
+  <link rel="stylesheet" href="css/auth.css">
+</head>
+<body>
+
+<div class="card">
+  <h2>Create Account</h2>
+  <p>Register to continue</p>
+
+  <input
+    id="email"
+    type="email"
+    placeholder="Email"
+    autocomplete="off"
+    required
+  />
+
+  <input
+    id="username"
+    placeholder="Username"
+    autocomplete="off"
+    required
+  />
+
+  <!-- Password with Eye Button -->
+  <div class="password-box">
+    <input
+      id="password"
+      type="password"
+      placeholder="Password"
+      required
+    />
+    <span class="eye" id="toggleRegister">👁️</span>
+  </div>
+
+  <select id="role" required>
+    <option value="">Select Role</option>
+    <option value="admin">Admin</option>
+    <option value="student">Student</option>
+  </select>
+
+  <p id="error-msg" class="error"></p>
+
+  <button onclick="registerUser()">Register</button>
+
+  <div class="link">
+    Already have an account? <a href="login.html">Login</a>
+  </div>
+</div>
+
+<script src="js/auth.js"></script>
+</body>
+</html>
