@@ -1,4 +1,4 @@
-const API = "https://sponsored-portal-production-f148.up.railway.app";
+const API = "https://sponsored-portal-production.up.railway.app";
 
 /* =========================
    FORGOT PASSWORD – EMAIL FILTER

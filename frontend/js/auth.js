@@ -2,7 +2,7 @@
    CONFIG
 ========================= */
 
-const API_BASE = "https://sponsored-portal-production-f148.up.railway.app";
+const API_BASE = "https://sponsored-portal-production.up.railway.app";
 
 /* =========================
    COMMON ELEMENTS (SAFE)
