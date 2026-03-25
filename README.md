@@ -1,3 +1,4 @@
+
 # Sponsored Program Portal 🎓
 
 The **Sponsored Program Portal** is a comprehensive web application designed to empower students by centralizing access to government schemes, internship opportunities, and academic events. It features a dual-dashboard system for both **Students** and **Administrators**, featuring real-time tracking, cloud-based document management, and automated notifications.
