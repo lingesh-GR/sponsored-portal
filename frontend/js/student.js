@@ -17,51 +17,10 @@ let studentSchemes = [];
 let studentInternships = [];
 let studentEvents = [];
 
-/* =====================================
-   TOAST NOTIFICATIONS
-===================================== */
-function showToast(message, type = 'info') {
-    const container = document.getElementById('toastContainer');
-    const icons = { success: '\u2705', error: '\u274c', info: '\u2139\ufe0f', warning: '\u26a0\ufe0f' };
-    const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
-    toast.innerHTML = `
-        <span class="toast-icon">${icons[type] || icons.info}</span>
-        <span>${message}</span>
-        <span class="toast-close" onclick="this.parentElement.remove()">\u2715</span>
-    `;
-    container.appendChild(toast);
-    setTimeout(() => toast.remove(), 3500);
-}
+let currentAppPage = 1;
+const appsPerPage = 6;
 
-/* =====================================
-   THEME TOGGLE
-===================================== */
-function toggleTheme() {
-    document.body.classList.toggle('light-mode');
-    const isLight = document.body.classList.contains('light-mode');
-    localStorage.setItem('theme', isLight ? 'light' : 'dark');
-    document.getElementById('themeIcon').textContent = isLight ? '\u2600\ufe0f' : '\ud83c\udf19';
-    document.getElementById('themeLabel').textContent = isLight ? 'Light' : 'Dark';
-}
-
-// Apply saved theme
-(function () {
-    if (localStorage.getItem('theme') === 'light') {
-        document.body.classList.add('light-mode');
-        const icon = document.getElementById('themeIcon');
-        const label = document.getElementById('themeLabel');
-        if (icon) icon.textContent = '\u2600\ufe0f';
-        if (label) label.textContent = 'Light';
-    }
-})();
-
-/* =====================================
-   SIDEBAR COLLAPSE
-===================================== */
-function toggleSidebar() {
-    document.querySelector('.sidebar').classList.toggle('collapsed');
-}
+// showToast, toggleTheme, toggleSidebar, logout — loaded from utils.js
 
 /* =====================================
    LOAD MY STATS
@@ -88,6 +47,7 @@ async function loadMyStats() {
    LOAD MY APPLICATIONS
 ===================================== */
 async function loadMyApplications() {
+    showLoading();
     try {
         const res = await fetch(`${API}/api/student/applications`, {
             headers: { Authorization: `Bearer ${token}` }
@@ -96,20 +56,26 @@ async function loadMyApplications() {
         const data = await res.json();
         myApplications = data || [];
 
-        renderApplicationTable(myApplications, "dashboardTable");
-        renderApplicationTable(myApplications, "applicationsTable", true);
+        // Simple render for dashboard (top 5)
+        renderApplicationTable(myApplications.slice(0, 5), "dashboardTable");
+        
+        // Full table with pagination
+        filterStudentApps(); 
+        
         populateStudentNotifications(myApplications);
         checkStatusChanges(myApplications);
 
     } catch (err) {
         console.error("Error loading applications:", err);
+    } finally {
+        hideLoading();
     }
 }
 
 /* =====================================
    RENDER APPLICATION TABLE
 ===================================== */
-function renderApplicationTable(data, tableId, showSno = false) {
+function renderApplicationTable(data, tableId, showSno = false, startSno = 1) {
     const table = document.getElementById(tableId);
     if (!table) return;
 
@@ -119,7 +85,7 @@ function renderApplicationTable(data, tableId, showSno = false) {
         table.innerHTML = `
       <tr>
         <td colspan="4" class="no-data">
-          No applications yet
+          No matching applications found
         </td>
       </tr>
     `;
@@ -133,10 +99,10 @@ function renderApplicationTable(data, tableId, showSno = false) {
 
         table.innerHTML += `
       <tr>
-        <td>${showSno ? index + 1 : index + 1}</td>
-        <td>${app.scheme_name}</td>
-        <td><span class="status-badge ${statusClass}">${app.status}</span></td>
-        <td>${new Date(app.applied_at).toLocaleDateString()}</td>
+        <td data-label="SNO">${showSno ? startSno + index : index + 1}</td>
+        <td data-label="Scheme">${app.scheme_name}</td>
+        <td data-label="Status"><span class="status-badge ${statusClass}">${app.status}</span></td>
+        <td data-label="Applied Date">${new Date(app.applied_at).toLocaleDateString()}</td>
       </tr>
     `;
     });
@@ -264,36 +230,40 @@ async function applyToScheme(schemeName) {
     const confirmed = await showConfirm({
         icon: '🏛️',
         title: 'Apply to Scheme',
-        message: `Do you want to apply to "${schemeName}"?`,
+        message: `Do you want to apply for "${schemeName}"?`,
         confirmText: '✅ Apply Now',
         confirmClass: 'modal-btn-success'
     });
     if (!confirmed) return;
 
+    showLoading();
     try {
+        const formData = new FormData();
+        formData.append("scheme_name", schemeName);
+
         const res = await fetch(`${API}/api/student/applications`, {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`
-            },
-            body: JSON.stringify({ scheme_name: schemeName })
+            headers: { Authorization: `Bearer ${token}` },
+            body: formData
         });
 
         const data = await res.json();
+        hideLoading(); // Hide loading before showing alert
 
         if (!res.ok) {
             await showAlert({ icon: '❌', title: 'Failed', message: data.message || 'Application failed', btnClass: 'modal-btn-danger' });
             return;
         }
 
-        await showAlert({ icon: '🎉', title: 'Application Submitted!', message: `Your application for "${schemeName}" has been submitted successfully.` });
+        await showAlert({ icon: '🎉', title: 'Success', message: `Applied for ${schemeName}.` });
         loadMyStats();
         loadMyApplications();
 
     } catch (err) {
         console.error("Apply error:", err);
-        await showAlert({ icon: '⚠️', title: 'Server Error', message: 'Something went wrong. Please try again later.', btnClass: 'modal-btn-danger' });
+        await showAlert({ icon: '⚠️', title: 'Server Error', message: 'Something went wrong.', btnClass: 'modal-btn-danger' });
+    } finally {
+        hideLoading();
     }
 }
 
@@ -434,17 +404,21 @@ async function applyToProgram(programName, type) {
     });
     if (!confirmed) return;
 
+    showLoading();
     try {
+        const formData = new FormData();
+        formData.append("scheme_name", `[${type.toUpperCase()}] ${programName}`);
+
         const res = await fetch(`${API}/api/student/applications`, {
             method: "POST",
             headers: {
-                "Content-Type": "application/json",
                 Authorization: `Bearer ${token}`
             },
-            body: JSON.stringify({ scheme_name: `[${type.toUpperCase()}] ${programName}` })
+            body: formData
         });
 
         const data = await res.json();
+        hideLoading(); // Hide loading immediately
 
         if (!res.ok) {
             await showAlert({ icon: '❌', title: 'Failed', message: data.message || 'Application failed', btnClass: 'modal-btn-danger' });
@@ -477,13 +451,32 @@ function filterStudentDash() {
     renderApplicationTable(filtered, "dashboardTable");
 }
 
-function filterStudentApps() {
-    const q = document.getElementById("studentAppSearch").value.toLowerCase();
-    const filtered = myApplications.filter(app =>
-        app.scheme_name.toLowerCase().includes(q) ||
-        app.status.toLowerCase().includes(q)
-    );
-    renderApplicationTable(filtered, "applicationsTable", true);
+function filterStudentApps(page = 1) {
+    currentAppPage = page;
+    const q = document.getElementById("studentAppSearch")?.value.toLowerCase() || "";
+    const status = document.getElementById("studentStatusFilter")?.value || "";
+
+    const filtered = myApplications.filter(app => {
+        const matchSearch = app.scheme_name.toLowerCase().includes(q) || app.status.toLowerCase().includes(q);
+        const matchStatus = status === "" || app.status === status;
+        return matchSearch && matchStatus;
+    });
+
+    const start = (currentAppPage - 1) * appsPerPage;
+    const paginated = filtered.slice(start, start + appsPerPage);
+
+    renderApplicationTable(paginated, "applicationsTable", true, start + 1);
+    
+    // Use the shared renderPagination from utils.js
+    if (typeof renderPagination === "function") {
+        renderPagination(
+            filtered.length,
+            appsPerPage,
+            currentAppPage,
+            "studentPagination",
+            (p) => filterStudentApps(p)
+        );
+    }
 }
 
 function filterStudentSchemes() {
@@ -578,14 +571,7 @@ function showSection(section) {
     }
 }
 
-/* =====================================
-   LOGOUT
-===================================== */
-function logout() {
-    localStorage.removeItem("token");
-    localStorage.removeItem("username");
-    window.location.replace("../login.html");
-}
+// logout is now in utils.js
 
 /* =====================================
    🔢 ANIMATED COUNTER

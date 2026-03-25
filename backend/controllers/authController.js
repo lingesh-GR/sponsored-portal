@@ -1,5 +1,5 @@
 const db = require("../config/db");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 /* =========================
@@ -22,7 +22,7 @@ exports.searchEmails = (req, res) => {
 };
 
 /* =========================
-   REGISTER  ✅ (THIS WAS MISSING)
+   REGISTER (THIS WAS MISSING)
 ========================= */
 exports.register = async (req, res) => {
   const { email, username, password, role } = req.body;

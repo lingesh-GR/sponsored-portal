@@ -14,6 +14,12 @@
 
 <body>
 
+  <!-- ================= LOADING OVERLAY ================= -->
+  <div id="loadingOverlay" class="loading-overlay">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Loading...</div>
+  </div>
+
   <!-- ================= TOP NAVBAR ================= -->
   <header class="topbar">
     <div class="logo">
@@ -171,6 +177,12 @@
           <span class="search-icon">🔍</span>
           <input type="text" id="studentAppSearch" placeholder="Search by scheme or status..."
             oninput="filterStudentApps()">
+          <select id="studentStatusFilter" class="status-filter-select dashboard-filter" onchange="filterStudentApps()">
+            <option value="">All Statuses</option>
+            <option value="pending">⏳ Pending</option>
+            <option value="approved">✅ Approved</option>
+            <option value="rejected">❌ Rejected</option>
+          </select>
         </div>
 
         <div class="table-container">
@@ -185,6 +197,7 @@
             </thead>
             <tbody id="applicationsTable"></tbody>
           </table>
+          <div id="studentPagination" class="pagination-container"></div>
         </div>
       </section>
 
@@ -334,6 +347,7 @@
 
 
 
+  <script src="../js/utils.js"></script>
   <script src="../js/student.js"></script>
 
 </body>

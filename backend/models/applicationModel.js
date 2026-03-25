@@ -11,7 +11,8 @@ exports.getAllApplications = (callback) => {
       users.email,
       applications.scheme_name,
       applications.status,
-      applications.applied_at
+      applications.applied_at,
+      applications.document_url
     FROM applications
     JOIN users ON applications.user_id = users.id
     ORDER BY applications.applied_at DESC
@@ -39,12 +40,12 @@ exports.getApplicationStats = (callback) => {
 /* =========================
    CREATE APPLICATION
 ========================= */
-exports.createApplication = (user_id, scheme_name, status, callback) => {
+exports.createApplication = (user_id, scheme_name, status, document_url, callback) => {
   const sql = `
-    INSERT INTO applications (user_id, scheme_name, status)
-    VALUES (?, ?, ?)
+    INSERT INTO applications (user_id, scheme_name, status, document_url)
+    VALUES (?, ?, ?, ?)
   `;
-  db.query(sql, [user_id, scheme_name, status], callback);
+  db.query(sql, [user_id, scheme_name, status, document_url], callback);
 };
 
 /* =========================
@@ -89,7 +90,8 @@ exports.getApplicationsByUserId = (userId, callback) => {
       applications.id,
       applications.scheme_name,
       applications.status,
-      applications.applied_at
+      applications.applied_at,
+      applications.document_url
     FROM applications
     WHERE applications.user_id = ?
     ORDER BY applications.applied_at DESC

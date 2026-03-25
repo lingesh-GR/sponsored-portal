@@ -85,38 +85,38 @@
 
     <!-- ============ FEATURES ============ -->
     <section id="features" class="features-section">
-        <div class="section-title-wrapper">
+        <div class="section-title-wrapper reveal">
             <h2 class="section-title">Everything You Need</h2>
             <p class="section-desc">Powerful features designed for students and administrators</p>
         </div>
 
         <div class="features-grid">
-            <div class="feature-card">
+            <div class="feature-card reveal">
                 <div class="feature-icon">📋</div>
                 <h3>One-Click Apply</h3>
                 <p>Browse schemes, internships, and events. Apply instantly with a single click.</p>
             </div>
-            <div class="feature-card">
+            <div class="feature-card reveal">
                 <div class="feature-icon">📊</div>
                 <h3>Smart Dashboard</h3>
                 <p>Track all your applications, statuses, and deadlines from one beautiful dashboard.</p>
             </div>
-            <div class="feature-card">
+            <div class="feature-card reveal">
                 <div class="feature-icon">📧</div>
                 <h3>Email Notifications</h3>
                 <p>Get notified instantly when your application is approved or rejected.</p>
             </div>
-            <div class="feature-card">
+            <div class="feature-card reveal">
                 <div class="feature-icon">🔒</div>
                 <h3>Secure & Private</h3>
                 <p>Your data is protected with JWT authentication and encrypted passwords.</p>
             </div>
-            <div class="feature-card">
+            <div class="feature-card reveal">
                 <div class="feature-icon">🔍</div>
                 <h3>Search & Filter</h3>
                 <p>Find exactly what you're looking for with powerful search across all sections.</p>
             </div>
-            <div class="feature-card">
+            <div class="feature-card reveal">
                 <div class="feature-icon">🌗</div>
                 <h3>Dark & Light Mode</h3>
                 <p>Switch between dark and light themes for comfortable viewing anytime.</p>
@@ -167,6 +167,20 @@
             <p class="footer-copy">© 2026 Sponsored Program Portal. All rights reserved.</p>
         </div>
     </footer>
+
+    <!-- Scroll Reveal Script -->
+    <script>
+        const revealEls = document.querySelectorAll('.reveal');
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    revealObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.15 });
+        revealEls.forEach(el => revealObserver.observe(el));
+    </script>
 
 </body>
 

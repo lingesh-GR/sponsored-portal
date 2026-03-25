@@ -17,51 +17,13 @@ let allSchemes = [];
 let allInternships = [];
 let allEvents = [];
 
-/* =====================================
-   TOAST NOTIFICATIONS
-===================================== */
-function showToast(message, type = 'info') {
-  const container = document.getElementById('toastContainer');
-  const icons = { success: '✅', error: '❌', info: 'ℹ️', warning: '⚠️' };
-  const toast = document.createElement('div');
-  toast.className = `toast toast-${type}`;
-  toast.innerHTML = `
-    <span class="toast-icon">${icons[type] || icons.info}</span>
-    <span>${message}</span>
-    <span class="toast-close" onclick="this.parentElement.remove()">✕</span>
-  `;
-  container.appendChild(toast);
-  setTimeout(() => toast.remove(), 3500);
-}
-
-/* =====================================
-   THEME TOGGLE
-===================================== */
-function toggleTheme() {
-  document.body.classList.toggle('light-mode');
-  const isLight = document.body.classList.contains('light-mode');
-  localStorage.setItem('theme', isLight ? 'light' : 'dark');
-  document.getElementById('themeIcon').textContent = isLight ? '☀️' : '🌙';
-  document.getElementById('themeLabel').textContent = isLight ? 'Light' : 'Dark';
-}
-
-// Apply saved theme
-(function () {
-  if (localStorage.getItem('theme') === 'light') {
-    document.body.classList.add('light-mode');
-    const icon = document.getElementById('themeIcon');
-    const label = document.getElementById('themeLabel');
-    if (icon) icon.textContent = '☀️';
-    if (label) label.textContent = 'Light';
-  }
-})();
-
-/* =====================================
-   SIDEBAR COLLAPSE
-===================================== */
-function toggleSidebar() {
-  document.querySelector('.sidebar').classList.toggle('collapsed');
-}
+// Pagination state
+const ROWS_PER_PAGE = 10;
+let appPage = 1;
+let dashAppPage = 1;
+let schemePage = 1;
+let internshipPage = 1;
+let eventPage = 1;
 
 /* =====================================
    LOADING SKELETONS
@@ -349,6 +311,7 @@ function exportPDF() {
    LOAD APPLICATIONS
 ===================================== */
 async function loadApplications() {
+  showLoading();
   try {
     const res = await fetch(`${API}/api/admin/applications`, {
       headers: { Authorization: `Bearer ${token}` }
@@ -357,8 +320,10 @@ async function loadApplications() {
     const data = await res.json();
     allApplications = data || [];
 
-    renderTable(allApplications, "dashboardTable", false);
-    renderTable(allApplications, "applicationsTable", true);
+    dashAppPage = 1;
+    appPage = 1;
+    renderTable(allApplications, "dashboardTable", false, dashAppPage);
+    renderTable(allApplications, "applicationsTable", true, appPage);
 
     // Render charts & activity log
     renderMonthlyChart(allApplications);
@@ -367,13 +332,15 @@ async function loadApplications() {
 
   } catch (err) {
     console.error("Error loading applications:", err);
+  } finally {
+    hideLoading();
   }
 }
 
 /* =====================================
-   RENDER APPLICATION TABLE
+   RENDER APPLICATION TABLE (WITH PAGINATION)
 ===================================== */
-function renderTable(data, tableId, showActions = false) {
+function renderTable(data, tableId, showActions = false, page = 1) {
   const table = document.getElementById(tableId);
   if (!table) return;
 
@@ -387,10 +354,19 @@ function renderTable(data, tableId, showActions = false) {
         </td>
       </tr>
     `;
+    // Clear pagination
+    const pagId = tableId + 'Pagination';
+    const pagEl = document.getElementById(pagId);
+    if (pagEl) pagEl.innerHTML = '';
     return;
   }
 
-  data.forEach((app, index) => {
+  // Pagination slice
+  const totalPages = Math.ceil(data.length / ROWS_PER_PAGE);
+  const start = (page - 1) * ROWS_PER_PAGE;
+  const pageData = data.slice(start, start + ROWS_PER_PAGE);
+
+  pageData.forEach((app, index) => {
     const statusClass = app.status === "approved" ? "status-approved"
       : app.status === "rejected" ? "status-rejected"
         : "status-pending";
@@ -417,7 +393,7 @@ function renderTable(data, tableId, showActions = false) {
 
     table.innerHTML += `
       <tr>
-        <td>${index + 1}</td>
+        <td>${start + index + 1}</td>
         <td><strong>${app.username}</strong></td>
         <td>${app.email}</td>
         <td>${app.scheme_name}</td>
@@ -427,6 +403,35 @@ function renderTable(data, tableId, showActions = false) {
       </tr>
     `;
   });
+
+  // Render pagination
+  const pagId = tableId + 'Pagination';
+  const pagFn = tableId === 'applicationsTable' ? 'goToAppPage' : 'goToDashAppPage';
+  let pagEl = document.getElementById(pagId);
+  if (!pagEl) {
+    pagEl = document.createElement('div');
+    pagEl.id = pagId;
+    pagEl.className = 'pagination';
+    table.closest('.table-container').appendChild(pagEl);
+  }
+  renderPagination(pagId, page, totalPages, pagFn);
+}
+
+// Pagination navigation functions
+function goToAppPage(p) {
+  appPage = p;
+  filterApplications();
+}
+function goToDashAppPage(p) {
+  dashAppPage = p;
+  const q = document.getElementById('dashboardSearch')?.value?.toLowerCase() || '';
+  const filtered = allApplications.filter(app =>
+    app.username.toLowerCase().includes(q) ||
+    app.email.toLowerCase().includes(q) ||
+    app.scheme_name.toLowerCase().includes(q) ||
+    app.status.toLowerCase().includes(q)
+  );
+  renderTable(filtered, 'dashboardTable', false, dashAppPage);
 }
 
 /* =====================================
@@ -938,15 +943,13 @@ function showSection(section) {
 }
 
 
-function logout() {
-  localStorage.removeItem("token");
-  localStorage.removeItem("username");
-  window.location.replace("../login.html");
-}
+// logout is now in utils.js
+
 /* =====================================
    SEARCH FILTERS
 ===================================== */
 function filterDashboard() {
+  dashAppPage = 1;
   const q = document.getElementById("dashboardSearch").value.toLowerCase();
   const filtered = allApplications.filter(app =>
     app.username.toLowerCase().includes(q) ||
@@ -954,18 +957,33 @@ function filterDashboard() {
     app.scheme_name.toLowerCase().includes(q) ||
     app.status.toLowerCase().includes(q)
   );
-  renderTable(filtered, "dashboardTable", false);
+  renderTable(filtered, "dashboardTable", false, dashAppPage);
 }
 
 function filterApplications() {
-  const q = document.getElementById("applicationsSearch").value.toLowerCase();
-  const filtered = allApplications.filter(app =>
-    app.username.toLowerCase().includes(q) ||
-    app.email.toLowerCase().includes(q) ||
-    app.scheme_name.toLowerCase().includes(q) ||
-    app.status.toLowerCase().includes(q)
-  );
-  renderTable(filtered, "applicationsTable", true);
+  appPage = (typeof appPage !== 'undefined') ? 1 : 1;
+  const q = (document.getElementById("applicationsSearch")?.value || '').toLowerCase();
+  const statusVal = (document.getElementById("statusFilter")?.value || 'all');
+
+  let filtered = allApplications;
+
+  // Text search
+  if (q) {
+    filtered = filtered.filter(app =>
+      app.username.toLowerCase().includes(q) ||
+      app.email.toLowerCase().includes(q) ||
+      app.scheme_name.toLowerCase().includes(q) ||
+      app.status.toLowerCase().includes(q)
+    );
+  }
+
+  // Status filter
+  if (statusVal !== 'all') {
+    filtered = filtered.filter(app => app.status === statusVal);
+  }
+
+  appPage = 1;
+  renderTable(filtered, "applicationsTable", true, appPage);
 }
 
 function filterSchemes() {

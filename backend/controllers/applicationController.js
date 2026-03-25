@@ -154,7 +154,9 @@ const applyToScheme = (req, res) => {
       return res.status(409).json({ message: "You have already applied to this program" });
     }
 
-    applicationModel.createApplication(userId, scheme_name, "pending", (err) => {
+    const document_url = req.file ? req.file.path : null;
+
+    applicationModel.createApplication(userId, scheme_name, "pending", document_url, (err) => {
       if (err) {
         return res.status(500).json({ message: "Server error" });
       }

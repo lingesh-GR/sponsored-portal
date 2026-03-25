@@ -1,0 +1,49 @@
+// ... previous content ...
+
+/* =====================================
+   APPLY TO SCHEME
+========================================= */
+async function applyToScheme(schemeName) {
+    const confirmed = await showConfirm({
+        icon: '🏛️',
+        title: 'Apply to Scheme',
+        message: `Do you want to apply for "${schemeName}"?`,
+        confirmText: '✅ Apply Now',
+        confirmClass: 'modal-btn-success'
+    });
+    if (!confirmed) return;
+
+    showLoading();
+    try {
+        const formData = new FormData();
+        formData.append("scheme_name", schemeName);
+
+        const res = await fetch(`${API}/api/student/applications`, {
+            method: "POST",
+            headers: {
+                Authorization: `Bearer ${token}`
+            },
+            body: formData
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+            await showAlert({ icon: '❌', title: 'Failed', message: data.message || 'Application failed', btnClass: 'modal-btn-danger' });
+            return;
+        }
+
+        await showAlert({ 
+            icon: '🎉', 
+            title: 'Application Submitted!', 
+            message: `Your application for "${schemeName}" has been submitted successfully.` 
+        });
+        loadMyStats();
+        loadMyApplications();
+
+    } catch (err) {
+        console.error("Apply error:", err);
+        await showAlert({ icon: '⚠️', title: 'Server Error', message: 'Something went wrong. Please try again later.', btnClass: 'modal-btn-danger' });
+    } finally {
+        hideLoading();
+    }
+}

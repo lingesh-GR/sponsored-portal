@@ -10,7 +10,7 @@ const transporter = nodemailer.createTransport({
 
 module.exports = async (to, subject, text, html = null) => {
   const mailOptions = {
-    from: '"Sponsored Provider Portal" <no-reply@sponsored_provider_portal>',
+    from: `"Sponsored Provider Portal" <${process.env.EMAIL_USER}>`,
     to,
     subject,
     text,
@@ -18,5 +18,6 @@ module.exports = async (to, subject, text, html = null) => {
   if (html) {
     mailOptions.html = html;
   }
-  await transporter.sendMail(mailOptions);
+  const info = await transporter.sendMail(mailOptions);
+  console.log("Mailing Info:", info.messageId, info.response);
 };
