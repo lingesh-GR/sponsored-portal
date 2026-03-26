@@ -15,6 +15,8 @@ async function setupDatabase() {
                 username VARCHAR(100),
                 email VARCHAR(100) UNIQUE NOT NULL,
                 password VARCHAR(255) NOT NULL,
+                reset_token VARCHAR(255) DEFAULT NULL,
+                reset_expires DATETIME DEFAULT NULL,
                 role ENUM('student', 'admin') DEFAULT 'student',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )`,

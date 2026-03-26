@@ -25,23 +25,28 @@ pool.getConnection((err, connection) => {
     console.log("MySQL Pool Connected");
     connection.release();
 
-    // Schema migration check
+    // Schema migration check for applications
     pool.query("SHOW COLUMNS FROM applications LIKE 'document_url'", (err, rows) => {
       if (err) {
-        console.error("Schema check failed:", err.message);
-        return;
-      }
-      if (rows.length === 0) {
+        console.error("Schema check failed (applications):", err.message);
+      } else if (rows.length === 0) {
         console.log("Adding missing column 'document_url' to applications table...");
         pool.query("ALTER TABLE applications ADD COLUMN document_url VARCHAR(512) DEFAULT NULL", (alterErr) => {
-          if (alterErr) {
-            console.error("Failed to add column:", alterErr.message);
-          } else {
-            console.log("Database column 'document_url' added successfully.");
-          }
+          if (alterErr) console.error("Failed to add column document_url:", alterErr.message);
         });
-      } else {
-        console.log("Database schema is already up to date.");
+      }
+    });
+
+    // Schema migration check for users (Forgot Password)
+    pool.query("SHOW COLUMNS FROM users LIKE 'reset_token'", (err, rows) => {
+      if (err) {
+        console.error("Schema check failed (users):", err.message);
+      } else if (rows.length === 0) {
+        console.log("Adding missing forgot password columns to users table...");
+        pool.query("ALTER TABLE users ADD COLUMN reset_token VARCHAR(255) DEFAULT NULL, ADD COLUMN reset_expires DATETIME DEFAULT NULL", (alterErr) => {
+          if (alterErr) console.error("Failed to add forgot password columns:", alterErr.message);
+          else console.log("Database columns for password reset added successfully.");
+        });
       }
     });
   }
