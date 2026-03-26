@@ -1,36 +1,55 @@
-const nodemailer = require("nodemailer");
-
 module.exports = async (to, subject, text, html = null) => {
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    console.error("❌ ERROR: EMAIL_USER or EMAIL_PASS environment variables are missing!");
-    throw new Error("Email credentials not configured on server.");
+  const apiKey = process.env.BREVO_API_KEY;
+
+  if (!apiKey) {
+    console.error("❌ ERROR: BREVO_API_KEY environment variable is missing!");
+    throw new Error("Email API key not configured on server.");
   }
 
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
+  // The sender email should ideally be verified in Brevo.
+  // Using the email you signed up with is the safest for a free account.
+  const senderEmail = process.env.EMAIL_USER || "lingeshgr06@gmail.com";
+
+  const payload = {
+    sender: {
+      name: "Sponsored Provider Portal",
+      email: senderEmail
     },
-  });
-
-  const mailOptions = {
-    from: `"Sponsored Provider Portal" <${process.env.EMAIL_USER}>`,
-    to,
-    subject,
-    text,
+    to: [
+      {
+        email: to
+      }
+    ],
+    subject: subject,
+    textContent: text
   };
-  
+
   if (html) {
-    mailOptions.html = html;
+    payload.htmlContent = html;
   }
-  
+
   try {
-    const info = await transporter.sendMail(mailOptions);
-    console.log("✅ Mailing Info:", info.messageId, info.response);
-    return info;
+    const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: {
+        "accept": "application/json",
+        "api-key": apiKey,
+        "content-type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      console.error("❌ Brevo API Error:", data);
+      throw new Error("Failed to send email via Brevo API.");
+    }
+
+    console.log("✅ Mailing Info (Brevo API):", data.messageId);
+    return data;
   } catch (err) {
-    console.error("❌ Nodemailer send failed:", err.message);
+    console.error("❌ Email fetch failed:", err.message);
     throw err;
   }
 };
