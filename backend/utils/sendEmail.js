@@ -7,17 +7,11 @@ module.exports = async (to, subject, text, html = null) => {
   }
 
   const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 465,
-    secure: true,
+    service: "gmail",
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
     },
-    // Prevent hanging on connection in some cloud environments
-    connectionTimeout: 10000, 
-    greetingTimeout: 5000,
-    socketTimeout: 10000,
   });
 
   const mailOptions = {
