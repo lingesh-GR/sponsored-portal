@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const internshipController = require("../controllers/internshipController");
+const { verifyToken, isAdmin } = require("../middleware/authMiddleware");
 
 /**
  * @swagger
@@ -34,7 +35,7 @@ router.get("/internships", internshipController.getInternships);
  *       201:
  *         description: Internship added
  */
-router.post("/admin/internships", internshipController.addInternship);
+router.post("/admin/internships", verifyToken, isAdmin, internshipController.addInternship);
 
 /**
  * @swagger
@@ -52,6 +53,6 @@ router.post("/admin/internships", internshipController.addInternship);
  *       200:
  *         description: Deleted
  */
-router.delete("/admin/internships/:id", internshipController.deleteInternship);
+router.delete("/admin/internships/:id", verifyToken, isAdmin, internshipController.deleteInternship);
 
 module.exports = router;

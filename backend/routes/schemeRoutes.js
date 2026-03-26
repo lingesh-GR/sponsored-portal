@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const schemeController = require("../controllers/schemeController");
+const { verifyToken, isAdmin } = require("../middleware/authMiddleware");
 
 /**
  * @swagger
@@ -48,7 +49,7 @@ router.get("/schemes", schemeController.getAllSchemes);
  *       401:
  *         description: Unauthorized
  */
-router.post("/admin/schemes", schemeController.addScheme);
+router.post("/admin/schemes", verifyToken, isAdmin, schemeController.addScheme);
 
 /**
  * @swagger
@@ -70,6 +71,6 @@ router.post("/admin/schemes", schemeController.addScheme);
  *       404:
  *         description: Scheme not found
  */
-router.delete("/admin/schemes/:id", schemeController.deleteScheme);
+router.delete("/admin/schemes/:id", verifyToken, isAdmin, schemeController.deleteScheme);
 
 module.exports = router;

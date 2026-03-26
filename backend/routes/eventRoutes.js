@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const eventController = require("../controllers/eventController");
+const { verifyToken, isAdmin } = require("../middleware/authMiddleware");
 
 /**
  * @swagger
@@ -34,7 +35,7 @@ router.get("/events", eventController.getEvents);
  *       201:
  *         description: Event added
  */
-router.post("/admin/events", eventController.addEvent);
+router.post("/admin/events", verifyToken, isAdmin, eventController.addEvent);
 
 /**
  * @swagger
@@ -52,6 +53,6 @@ router.post("/admin/events", eventController.addEvent);
  *       200:
  *         description: Deleted
  */
-router.delete("/admin/events/:id", eventController.deleteEvent);
+router.delete("/admin/events/:id", verifyToken, isAdmin, eventController.deleteEvent);
 
 module.exports = router;

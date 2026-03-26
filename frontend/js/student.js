@@ -469,12 +469,12 @@ function filterStudentApps(page = 1) {
     
     // Use the shared renderPagination from utils.js
     if (typeof renderPagination === "function") {
+        const totalPages = Math.ceil(filtered.length / appsPerPage);
         renderPagination(
-            filtered.length,
-            appsPerPage,
-            currentAppPage,
             "studentPagination",
-            (p) => filterStudentApps(p)
+            currentAppPage,
+            totalPages,
+            "filterStudentApps"
         );
     }
 }

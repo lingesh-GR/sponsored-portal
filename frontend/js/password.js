@@ -77,7 +77,7 @@ document.getElementById("resetForm")?.addEventListener("submit", async (e) => {
   }
 
   try {
-    const res = await fetch("http://localhost:5000/api/password/reset", {
+    const res = await fetch(`${API}/api/password/reset`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ token, password })

@@ -887,7 +887,8 @@ function renderEventTable(data) {
 async function deleteEvent(id) {
   try {
     const res = await fetch(`${API}/api/admin/events/${id}`, {
-      method: "DELETE"
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` }
     });
 
     if (!res.ok) throw new Error("Delete failed");
@@ -1060,7 +1061,6 @@ function launchConfetti() {
   setTimeout(() => container.remove(), 4000);
 }
 
-/* =====================================
 /* =====================================
    🔔 NOTIFICATION BELL
 ===================================== */

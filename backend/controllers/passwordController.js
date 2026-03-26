@@ -27,7 +27,7 @@ exports.forgotPassword = (req, res) => {
     }
 
     // Fixed: Standardized reset link for local development (Live Server)
-    const resetLink = `http://127.0.0.1:5500/frontend/reset.html?token=${token}`;
+    const resetLink = `https://sponsored-portal.vercel.app/reset.html?token=${token}`;
 
     const emailHtml = `
       <div style="font-family: sans-serif; padding: 20px; color: #333;">
