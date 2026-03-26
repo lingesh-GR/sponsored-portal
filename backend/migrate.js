@@ -12,7 +12,7 @@ async function setupDatabase() {
         const tables = [
             `CREATE TABLE IF NOT EXISTS users (
                 id INT AUTO_INCREMENT PRIMARY KEY,
-                full_name VARCHAR(100),
+                username VARCHAR(100),
                 email VARCHAR(100) UNIQUE NOT NULL,
                 password VARCHAR(255) NOT NULL,
                 role ENUM('student', 'admin') DEFAULT 'student',
@@ -46,12 +46,12 @@ async function setupDatabase() {
             )`,
             `CREATE TABLE IF NOT EXISTS applications (
                 id INT AUTO_INCREMENT PRIMARY KEY,
-                student_id INT,
+                user_id INT,
                 scheme_name VARCHAR(255),
                 status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
                 applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 document_url VARCHAR(512) DEFAULT NULL,
-                FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             )`
         ];
 
